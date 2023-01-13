@@ -1,0 +1,12 @@
+# Connect to Microsoft 365
+$UserCredential = Get-Credential
+Connect-AzureAD -Credential $UserCredential
+
+# Set the distribution group name
+$GroupName = "Enter group name here"
+
+# Get the distribution group
+$Group = Get-AzureADGroup -SearchString $GroupName
+
+# Delete the distribution group
+Remove-AzureADGroup -ObjectId $Group.ObjectId
