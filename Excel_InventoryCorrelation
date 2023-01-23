@@ -1,0 +1,66 @@
+# Load Excel assembly
+Add-Type -AssemblyName Microsoft.Office.Interop.Excel
+
+# Open Excel workbook
+$excel = New-Object -ComObject Excel.Application
+$workbook = $excel.Workbooks.Open("C:\Users\joseph.gonzalez\OneDrive - Abrigo\Desktop\Asset Inventory.xlsx")
+
+# Get the first sheet (machines and users)
+$sheet1 = $workbook.Sheets.Item(1)
+
+# Get the second sheet (active users)
+$sheet2 = $workbook.Sheets.Item(2)
+
+# Get the last row in the first sheet
+$lastRow1 = $sheet1.UsedRange.Rows.Count
+
+# Get the last row in the second sheet
+$lastRow2 = $sheet2.UsedRange.Rows.Count
+
+# Create a new sheet for the results
+$sheet3 = $workbook.Sheets.Add()
+$sheet3.Name = "Results"
+
+# Add headers to the results sheet
+$sheet3.Cells.Item(1,1) = "Username"
+$sheet3.Cells.Item(1,2) = "Machine Name"
+$sheet3.Cells.Item(1,3) = "Machine Status"
+
+# Initialize variables for the results
+$resultsRow = 2
+$spareRow = 2
+
+# Iterate through the first sheet
+for ($i = 2; $i -le $lastRow1; $i++) {
+    $username = $sheet1.Cells.Item($i, 2).Text
+    $machine = $sheet1.Cells.Item($i, 1).Text
+    $status = $sheet1.Cells.Item($i, 3).Text
+
+    # Check if the user is active in the second sheet
+    $isActive = $false
+    for ($j = 2; $j -le $lastRow2; $j++) {
+        if ($username -eq $sheet2.Cells.Item($j, 1).Text) {
+            $isActive = $true
+            break
+        }
+    }
+
+    # If the user is active, add the machine to the results sheet
+    if ($isActive -eq $true -and $status -eq "operational") {
+        $sheet3.Cells.Item($resultsRow, 1) = $username
+        $sheet3.Cells.Item($resultsRow, 2) = $machine
+        $sheet3.Cells.Item($resultsRow, 3) = $status
+        $resultsRow++
+    } elseif ($isActive -eq $false -and $status -eq "operational") {
+        $sheet3.Cells.Item($spareRow, 1) = $username
+        $sheet3.Cells.Item($spareRow, 2) = $machine
+        $sheet3.Cells.Item($spareRow, 3) = $status
+        $spareRow++
+    }
+}
+
+# Save the workbook
+$workbook.Save()
+
+# Close Excel
+$excel.Quit()
