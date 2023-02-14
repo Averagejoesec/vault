@@ -1,0 +1,40 @@
+# First, make sure the PowerPoint module is installed
+Install-Module -Name PowerPoint -Scope CurrentUser
+
+# Set the file path for the PowerPoint file you want to extract alt-text from
+$filePath = "C:\path\to\your\file.pptx"
+
+# Create a new PowerPoint application object
+$ppt = New-Object -ComObject PowerPoint.Application
+
+# Open the PowerPoint file
+$presentation = $ppt.Presentations.Open($filePath)
+
+# Create an empty array to hold the alt-text for each slide
+$altTextArray = @()
+
+# Loop through each slide in the presentation
+foreach ($slide in $presentation.Slides) {
+
+  # Loop through each shape on the slide
+  foreach ($shape in $slide.Shapes) {
+
+    # Check if the shape has alt-text
+    if ($shape.AlternativeText -ne "") {
+
+      # If it does, add the alt-text to the array along with the slide index and shape name
+      $altTextArray += [PSCustomObject]@{
+        SlideIndex = $slide.SlideIndex
+        ShapeName = $shape.Name
+        AltText = $shape.AlternativeText
+      }
+    }
+  }
+}
+
+# Export the array to a CSV file
+$altTextArray | Export-Csv -Path "C:\path\to\output\file.csv" -NoTypeInformation
+
+# Close the PowerPoint presentation and application
+$presentation.Close()
+$ppt.Quit()
